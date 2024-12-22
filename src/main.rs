@@ -10,9 +10,21 @@ use bevy::{
 };
 
 fn main() {
+    let window_descriptor = Window {
+        title: "Mouse".to_string(),
+        canvas: Some("#game".to_string()),
+        fit_canvas_to_parent: true,
+        ..default()
+    };
+    let window_plugin = WindowPlugin {
+        primary_window: Some(window_descriptor),
+        ..default()
+    };
     App::new()
-        // Enable physics
-        .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
+        .add_plugins((
+            DefaultPlugins.set(window_plugin),
+            PhysicsPlugins::default(),
+        ))
         .add_systems(Startup, setup)
         .add_plugins(MeshPickingPlugin)
         .add_systems(Update, update_goal_system)
@@ -36,7 +48,7 @@ fn setup(
     let cube = commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
         MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-            Collider::cuboid(1., 1., 1.),
+        Collider::cuboid(1., 1., 1.),
         RigidBody::Dynamic,
         GravityScale(0.0),
         Transform::from_xyz(0.0, 0.0, 0.0),
@@ -47,7 +59,7 @@ fn setup(
         Mesh3d(meshes.add(Sphere::new(0.25))),
         MeshMaterial3d(materials.add(Color::srgb_u8(255, 0, 0))),
         RigidBody::Static,
-            //Collider::cuboid(1., 1., 1.),
+        //Collider::cuboid(1., 1., 1.),
         Transform::from_xyz(-1.0, 0.0, 0.0),
         Goal,
     )).id();
@@ -69,9 +81,9 @@ fn setup(
         DistanceJoint::new(goal, cube)
             .with_compliance(1.0 / 50.0)
             .with_linear_velocity_damping(10.0)
-            //.with_local_anchor_2(0.5 * Vector::ONE)
-            //.with_rest_length(1.5)
-            //.with_compliance(1.0 / 400.0),
+        //.with_local_anchor_2(0.5 * Vector::ONE)
+        //.with_rest_length(1.5)
+        //.with_compliance(1.0 / 400.0),
     );
 }
 
