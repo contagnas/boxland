@@ -42,7 +42,7 @@ fn setup(
     // ground
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(10000.0, 10000.0))),
-        MeshMaterial3d(materials.add(Color::WHITE)),
+        MeshMaterial3d(materials.add(Color::BLACK)),
     ));
     // cube
     let cube = commands.spawn((
