@@ -4,15 +4,18 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { BouncingBall } from "@/components/bouncing-ball"
 import { Game } from "@/components/game"
+import { Intro }  from "@/components/intro"
+import init from "@/game/game"
 
 function App() {
+  useEffect(() => {init()}, [])
 
   return (
     <ThemeProvider defaultTheme="dark">
       <div className="flex flex-col items-center h-full relative">
         <Header />
         <BouncingBall className="absolute top-0 left-0 w-full h-full z-[-1]" />
-        <Game />
+        <Intro />
       </div>
     </ThemeProvider>
   )
