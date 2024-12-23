@@ -12,6 +12,13 @@ export default defineConfig({
   server: {
     fs: {
       allow: ['.', '../game/public']
+    },
+    proxy: {
+      '/ws': {
+        target: 'ws://localhost:3000',
+        ws: true,
+        rewriteWsOrigin: true,
+      }
     }
   }
 })
