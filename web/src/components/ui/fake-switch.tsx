@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-export function FakeSwitch({ onClick, onUnclick }: any) {
+type Props = {
+  onClick?: () => unknown
+  onUnclick?: () => unknown
+}
+
+export function FakeSwitch({ onClick, onUnclick }: Props) {
   const [isSwitching, setIsSwitching] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
 

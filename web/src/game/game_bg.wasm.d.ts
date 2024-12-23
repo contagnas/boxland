@@ -1,0 +1,1 @@
+../../../game/public/game_bg.wasm.d.ts

@@ -1,6 +1,8 @@
+[working-directory: 'game']
 build-game:
   cargo build --target wasm32-unknown-unknown --release
 
+[working-directory: 'game']
 build-wasm: build-game
-  wasm-bindgen --no-typescript --target web --out-dir ./out/ --out-name mousy ./target/wasm32-unknown-unknown/release/motion_smoothing.wasm 
+  wasm-bindgen --target web --out-dir ./public/ --out-name game ./target/wasm32-unknown-unknown/release/motion_smoothing.wasm 
 

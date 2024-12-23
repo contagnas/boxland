@@ -1,20 +1,31 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
-import { Button } from "@/components/ui/button"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { BouncingBall } from "@/components/bouncing-ball"
+import init from "@/game/game"
+
+async function runGame() {
+  try {
+    await init();
+  } catch (e) {
+    const error = e as Error;
+    if (error.message.includes("Using exceptions for control flow")) {
+      return;
+    }
+    console.error("Failed to start game", error);
+  }
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  useEffect(() => {runGame()}, [])
 
   return (
-    <ThemeProvider className="relative">
+    <ThemeProvider defaultTheme="dark">
       <div className="flex flex-col items-center h-full relative">
         <Header />
         <BouncingBall className="absolute top-0 left-0 w-full h-full z-[-1]" />
-        <p>{count}</p>
-        <Button onClick={() => setCount(count + 1)}>click me</Button>
+        <canvas id="game" />
       </div>
     </ThemeProvider>
   )

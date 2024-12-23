@@ -1,4 +1,3 @@
-/target
 /.direnv/
-/out/*.js
-/out/*.wasm
+/game/target
+/game/public/*
