@@ -2,6 +2,7 @@ import { FakeSwitch } from "@/components/ui/fake-switch";
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider"
+import { send_event } from "@/game/game"
 
 function SunIcon() {
   return (
@@ -60,8 +61,12 @@ export function Header() {
           onClick={() => {
             toast("A mysterious force prevents light mode!")
             setTheme("light")
+            send_event("light")
           }}
-          onUnclick={() => setTheme("dark") }
+          onUnclick={() => {
+            setTheme("dark")
+            send_event("dark")
+          }}
             />
         <SunIcon />
 
@@ -80,8 +85,8 @@ export function Header() {
         }
 
         @keyframes glow {
-        from { box-shadow: 0 0 10px magenta; }
-        to { box-shadow: 0 0 20px cyan; }
+        from { box-shadow: 0 0 10px white; }
+        to { box-shadow: 0 0 30px cyan; }
         }
 
         .animate-border-dance {

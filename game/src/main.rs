@@ -1,8 +1,31 @@
+use std::sync::OnceLock;
+
 use avian3d::prelude::*;
 use avian3d::prelude::{DistanceJoint, GravityScale, RigidBody};
 use bevy::prelude::*;
 use bevy::picking::backend::ray::RayMap;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy_channel_trigger::ChannelSender;
+
+use wasm_bindgen::prelude::*;
+
+static EVENT_BRIDGE: OnceLock<Option<ChannelSender<WebEvent>>> = OnceLock::new();
+
+fn set_sender(sender: ChannelSender<WebEvent>) {
+    while EVENT_BRIDGE.set(Some(sender.clone())).is_err() {}
+}
+
+#[wasm_bindgen]
+pub fn send_event(event: &str) {
+    let Some(sender) = EVENT_BRIDGE.get().map(Option::as_ref).flatten() else {
+        return bevy::log::error!("`WebPlugin` not installed correctly (no sender found)");
+    };
+    match event {
+        "light" => sender.send(WebEvent::SetLightMode),
+        "dark" => sender.send(WebEvent::SetDarkMode),
+        _ => { warn!("Bad event: {event}") }
+    }
+}
 
 fn main() {
     let window_descriptor = Window {
@@ -15,17 +38,43 @@ fn main() {
         primary_window: Some(window_descriptor),
         ..default()
     };
-    App::new()
+
+    let mut app = App::new();
+
+    let app = app
         .add_plugins((DefaultPlugins.set(window_plugin), PhysicsPlugins::default()))
         .add_systems(Startup, setup)
         .add_plugins(MeshPickingPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_systems(Update, update_goal_system)
-        .run();
+        .add_observer(on_light_mode)
+        .add_observer(on_web_event)
+        .add_observer(on_dark_mode);
+
+    use bevy_channel_trigger::ChannelTriggerApp;
+    let sender = app.add_channel_trigger::<WebEvent>();
+    set_sender(sender); 
+
+    app.run();
 }
+
+#[derive(Event, Clone)]
+enum WebEvent {
+    SetLightMode,
+    SetDarkMode,
+}
+
+#[derive(Event)]
+struct SetLightMode;
+
+#[derive(Event)]
+struct SetDarkMode;
 
 #[derive(Component)]
 struct Goal;
+
+#[derive(Component)]
+struct ColorMode;
 
 fn setup(
     mut commands: Commands,
@@ -36,6 +85,7 @@ fn setup(
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(10000.0, 10000.0))),
         MeshMaterial3d(materials.add(Color::BLACK)),
+        ColorMode,
     ));
     // cube
     let cube = commands
@@ -87,7 +137,6 @@ fn update_goal(
     mut query_goal: Query<&mut Transform, With<Goal>>,
     ray_map: Res<RayMap>,
 ) -> Option<()> {
-    let iter = ray_map.iter();
     if ray_map.iter().count() != 1 {
         return None;
     };
@@ -102,6 +151,49 @@ fn update_goal(
 
     Some(())
 }
+
 fn update_goal_system(query_goal: Query<&mut Transform, With<Goal>>, ray_map: Res<RayMap>) {
     update_goal(query_goal, ray_map);
+}
+
+fn on_web_event(
+    trigger: Trigger<WebEvent>,
+    material_handles: Query<&MeshMaterial3d<StandardMaterial>, With<ColorMode>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+
+    let color = match trigger.event() {
+        WebEvent::SetLightMode => Color::WHITE,
+        WebEvent::SetDarkMode => Color::BLACK,
+    };
+
+    for material_handle in material_handles.iter() {
+        if let Some(material) = materials.get_mut(material_handle) {
+            material.base_color = color; 
+        }
+    }
+}
+
+fn on_dark_mode(
+    _trigger: Trigger<SetDarkMode>,
+    material_handles: Query<&MeshMaterial3d<StandardMaterial>, With<ColorMode>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for material_handle in material_handles.iter() {
+        if let Some(material) = materials.get_mut(material_handle) {
+            material.base_color = Color::BLACK; 
+        }
+    }
+}
+
+fn on_light_mode(
+    _trigger: Trigger<SetLightMode>,
+    material_handles: Query<&MeshMaterial3d<StandardMaterial>, With<ColorMode>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for material_handle in material_handles.iter() {
+        if let Some(material) = materials.get_mut(material_handle) {
+            material.base_color = Color::WHITE; 
+        }
+    }
 }

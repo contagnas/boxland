@@ -475,6 +475,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_channel_trigger"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1379416324f013fc16e70730d67e220a0a09bd9cb97060fd053f90656aaedc3"
+dependencies = [
+ "bevy",
+ "crossbeam-channel",
+]
+
+[[package]]
 name = "bevy_color"
 version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2708,6 +2718,8 @@ version = "0.1.0"
 dependencies = [
  "avian3d",
  "bevy",
+ "bevy_channel_trigger",
+ "wasm-bindgen",
 ]
 
 [[package]]
