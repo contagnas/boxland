@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import init from "@/game/game"
 
-
 async function runGame() {
   try {
     await init();
@@ -19,6 +18,14 @@ export const Game = () => {
 
   const [messages, setMessages] = useState<string[]>([]);
   const [ws, setWs] = useState<WebSocket | null>(null);
+
+  // Register the function on the window object
+  window.publish_event = (message: string) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(message)
+    }
+  };
+
 
   useEffect(() => {
     const url = new URL('./ws', location.href);

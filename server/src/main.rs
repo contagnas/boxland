@@ -10,10 +10,7 @@ use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
-    },
-    response::{IntoResponse},
-    routing::get,
-    Router,
+    }, http::StatusCode, response::IntoResponse, routing::get, Router
 };
 use futures::{sink::SinkExt, stream::StreamExt};
 use std::{
@@ -22,6 +19,7 @@ use std::{
 };
 use tokio::sync::broadcast;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use axum::extract::Path;
 
 // Our shared state
 struct AppState {
@@ -30,6 +28,7 @@ struct AppState {
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
+use std::{fmt, str::FromStr};
 
 #[tokio::main]
 async fn main() {
@@ -48,7 +47,7 @@ async fn main() {
     let app_state = Arc::new(AppState { user_set, tx });
 
     let app = Router::new()
-        .route("/ws", get(websocket_handler))
+        .route("/ws/:username", get(websocket_handler))
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
@@ -58,48 +57,35 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
+struct Params {
+    username: String
+}
+
 async fn websocket_handler(
     ws: WebSocketUpgrade,
+    Path(username): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(|socket| websocket(socket, state))
+    if let Some(name) = check_username(&state, &username) {
+      ws.on_upgrade(|socket| websocket(socket, state, name))
+    } else {
+      (StatusCode::BAD_REQUEST, "Username taken").into_response()
+    }
 }
 
 // This function deals with a single websocket connection, i.e., a single
 // connected client / user, for which we will spawn two independent tasks (for
 // receiving / sending chat messages).
-async fn websocket(stream: WebSocket, state: Arc<AppState>) {
+async fn websocket(stream: WebSocket, state: Arc<AppState>, name: String) {
     // By splitting, we can send and receive at the same time.
     let (mut sender, mut receiver) = stream.split();
-
-    // Username gets set in the receive loop, if it's valid.
-    let mut username = String::new();
-    // Loop until a text message is found.
-    while let Some(Ok(message)) = receiver.next().await {
-        if let Message::Text(name) = message {
-            // If username that is sent by client is not taken, fill username string.
-            check_username(&state, &mut username, &name);
-
-            // If not empty we want to quit the loop else we want to quit function.
-            if !username.is_empty() {
-                break;
-            } else {
-                // Only send our client that username is taken.
-                let _ = sender
-                    .send(Message::Text(String::from("Username already taken.")))
-                    .await;
-
-                return;
-            }
-        }
-    }
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("{username} joined.");
+    let msg = format!("{name} joined.");
     tracing::debug!("{msg}");
     let _ = state.tx.send(msg);
 
@@ -116,14 +102,14 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
 
     // Clone things we want to pass (move) to the receiving task.
     let tx = state.tx.clone();
-    let name = username.clone();
+    let username = name.clone();
 
     // Spawn a task that takes messages from the websocket, prepends the user
     // name, and sends them to all broadcast subscribers.
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             // Add username before message.
-            let _ = tx.send(format!("{name}: {text}"));
+            let _ = tx.send(format!("{username}: {text}"));
         }
     });
 
@@ -134,20 +120,22 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     };
 
     // Send "user left" message (similar to "joined" above).
-    let msg = format!("{username} left.");
+    let msg = format!("{name} left.");
     tracing::debug!("{msg}");
     let _ = state.tx.send(msg);
 
     // Remove username from map so new clients can take it again.
-    state.user_set.lock().unwrap().remove(&username);
+    state.user_set.lock().unwrap().remove(&name);
 }
 
-fn check_username(state: &AppState, string: &mut String, name: &str) {
+fn check_username(state: &AppState, name: &str) -> Option<String> {
+    if name.contains(":") { return None }; // begone hacker!!1
     let mut user_set = state.user_set.lock().unwrap();
 
     if !user_set.contains(name) {
         user_set.insert(name.to_owned());
-
-        string.push_str(name);
+        return Some(name.to_owned())
+    } else {
+        None
     }
 }

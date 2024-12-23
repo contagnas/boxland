@@ -16,6 +16,12 @@ fn set_sender(sender: ChannelSender<WebEvent>) {
 }
 
 #[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_name = publish_event)]
+    fn publish_event(event: &str);
+}
+
+#[wasm_bindgen]
 pub fn send_event(event: &str) {
     let Some(sender) = EVENT_BRIDGE.get().map(Option::as_ref).flatten() else {
         return bevy::log::error!("`WebPlugin` not installed correctly (no sender found)");
@@ -47,9 +53,7 @@ fn main() {
         .add_plugins(MeshPickingPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_systems(Update, update_goal_system)
-        .add_observer(on_light_mode)
-        .add_observer(on_web_event)
-        .add_observer(on_dark_mode);
+        .add_observer(on_web_event);
 
     use bevy_channel_trigger::ChannelTriggerApp;
     let sender = app.add_channel_trigger::<WebEvent>();
@@ -63,12 +67,6 @@ enum WebEvent {
     SetLightMode,
     SetDarkMode,
 }
-
-#[derive(Event)]
-struct SetLightMode;
-
-#[derive(Event)]
-struct SetDarkMode;
 
 #[derive(Component)]
 struct Goal;
@@ -167,6 +165,8 @@ fn on_web_event(
         WebEvent::SetDarkMode => Color::BLACK,
     };
 
+    publish_event("switching ground to {color}");
+
     for material_handle in material_handles.iter() {
         if let Some(material) = materials.get_mut(material_handle) {
             material.base_color = color; 
@@ -174,26 +174,3 @@ fn on_web_event(
     }
 }
 
-fn on_dark_mode(
-    _trigger: Trigger<SetDarkMode>,
-    material_handles: Query<&MeshMaterial3d<StandardMaterial>, With<ColorMode>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    for material_handle in material_handles.iter() {
-        if let Some(material) = materials.get_mut(material_handle) {
-            material.base_color = Color::BLACK; 
-        }
-    }
-}
-
-fn on_light_mode(
-    _trigger: Trigger<SetLightMode>,
-    material_handles: Query<&MeshMaterial3d<StandardMaterial>, With<ColorMode>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    for material_handle in material_handles.iter() {
-        if let Some(material) = materials.get_mut(material_handle) {
-            material.base_color = Color::WHITE; 
-        }
-    }
-}
