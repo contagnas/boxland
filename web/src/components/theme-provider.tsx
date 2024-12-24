@@ -33,7 +33,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement
  
-    root.classList.remove("light", "dark")
+    root.classList.remove("light", "dark", "invert")
  
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -58,7 +58,9 @@ export function ThemeProvider({
  
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
+      <span className={`w-full h-full ${theme === "dark" ? "": "invert"}`}>
       {children}
+      </span>
     </ThemeProviderContext.Provider>
   )
 }

@@ -57,12 +57,14 @@ async fn main() {
     let app = Router::new()
         .route("/ws/:username", get(websocket_handler))
         .with_state(app_state)
-        .fallback(serve_dir);
+        .fallback(serve_dir)
+        .layer(TraceLayer::new_for_http());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:6969")
         .await
         .unwrap();
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+
+    tracing::info!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }
 

@@ -18,9 +18,14 @@ export const Intro = () => {
   const [websocket, setWebsocket] = useState<null | WebSocket>(null)
   const [showGame, setShowGame] = useState(false)
 
+  const fixedName = (name.toUpperCase().startsWith("D") ? `DR. ${name}` : name)
+    .replace('snowball', 'dr. snowball')
+    .replace('Snowball', 'Dr. Snowball')
+    .replace('SNOWBALL', 'DR. SNOWBALL')
+
   useEffect(() => {
     if (initWebsocket) {
-      const url = new URL(`./ws/${name}`, location.href);
+      const url = new URL(`./ws/${fixedName}`, location.href);
       url.protocol = url.protocol.replace('http', 'ws');
       const socket = new WebSocket(url);
       socket.onopen = () => {
@@ -89,7 +94,7 @@ export const Intro = () => {
   const introShown = showGame? "hidden" : ""
   return (
     <>
-      <Game visible={showGame} websocket={websocket} username={name} />
+      <Game visible={showGame} websocket={websocket} username={fixedName} />
       <div className={`h-full w-full flex flex-col justify-center items-center bg-gradient-to-b from-yellow-500 to-pink-800 text-center space-y-6 ${introShown}`}>
         {messages.map((msg, index) => (
           <div
@@ -113,6 +118,11 @@ export const Intro = () => {
               className="p-4 focus:outline-none text-center text-3xl font-comic font-extrabold w-full h-full text-black"
               type="text"
               value={name}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleEnter()
+                }
+              }}
               onChange={(event) => {
                 setName(event.target.value)
                 setEnterVisible(true)
