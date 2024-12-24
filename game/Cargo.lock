@@ -1402,6 +1402,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "boxland"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+ "bevy_channel_trigger",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2710,18 +2722,6 @@ checksum = "4ffbe83022cedc1d264172192511ae958937694cd57ce297164951b8b3568394"
 dependencies = [
  "adler2",
  "simd-adler32",
-]
-
-[[package]]
-name = "motion_smoothing"
-version = "0.1.0"
-dependencies = [
- "avian3d",
- "bevy",
- "bevy_channel_trigger",
- "serde",
- "serde_json",
- "wasm-bindgen",
 ]
 
 [[package]]

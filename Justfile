@@ -4,7 +4,7 @@ build-game:
 
 [working-directory: 'game']
 build-wasm: build-game
-  wasm-bindgen --target web --out-dir ./public/ --out-name game ./target/wasm32-unknown-unknown/release/motion_smoothing.wasm 
+  wasm-bindgen --target web --out-dir ./public/ --out-name game ./target/wasm32-unknown-unknown/release/boxland.wasm
 
 [working-directory: 'server']
 run-server:
