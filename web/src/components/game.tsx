@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import init, { send_event, run } from "@/game/game"
+import init, { InitOutput, send_event, run } from "@/game/game"
 
-let engine: any | null = null;
+let engine: InitOutput | null = null;
 let engineIniting = false;
 
 const initEngine = async () => {
   if (!engine && !engineIniting) {
+    engineIniting = true
     engine = await init()
   }
   return engine
@@ -26,7 +27,7 @@ async function runGame(username: string) {
 
 export type GameProps = {
   websocket: WebSocket | null
-  visible?: Boolean
+  visible?: boolean
   username: string
 }
 
@@ -40,7 +41,7 @@ export const Game = ({ websocket, visible, username }: GameProps) => {
       console.log(engine)
       runGame(username)
     }
-  }, [engine, visible])
+  }, [visible, username])
 
   useEffect(() => {
 
@@ -50,7 +51,7 @@ export const Game = ({ websocket, visible, username }: GameProps) => {
       };
 
       // Register the function on the window object
-      // @ts-ignore
+      // @ts-expect-error we are in the browser, window is defined
       window.publish_event = (message: string) => {
         if (websocket.readyState === WebSocket.OPEN) {
           websocket.send(message)

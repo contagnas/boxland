@@ -6,11 +6,16 @@
 //! cargo run -p example-chat
 //! ```
 
+use axum::extract::Path;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
-    }, http::StatusCode, response::IntoResponse, routing::get, Router
+    },
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Router,
 };
 use futures::{sink::SinkExt, stream::StreamExt};
 use std::{
@@ -18,13 +23,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tokio::sync::broadcast;
-use tower_http::{
-    services::{ServeDir, ServeFile},
-    trace::TraceLayer,
-    compression::CompressionLayer,
-};
+use tower_http::{compression::CompressionLayer, services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use axum::extract::Path;
 
 // Our shared state
 struct AppState {
@@ -33,7 +33,6 @@ struct AppState {
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
-use std::{fmt, str::FromStr};
 use axum::routing::get_service;
 
 #[tokio::main]
@@ -51,8 +50,7 @@ async fn main() {
     let (tx, _rx) = broadcast::channel(100);
 
     let app_state = Arc::new(AppState { user_set, tx });
-    let serve_dir = get_service(ServeDir::new("../web/dist/"))
-        .layer(CompressionLayer::new());
+    let serve_dir = get_service(ServeDir::new("../web/dist/")).layer(CompressionLayer::new());
 
     let app = Router::new()
         .route("/ws/:username", get(websocket_handler))
@@ -60,16 +58,10 @@ async fn main() {
         .fallback(serve_dir)
         .layer(TraceLayer::new_for_http());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:6969")
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:6969").await.unwrap();
 
     tracing::info!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-struct Params {
-    username: String
 }
 
 async fn websocket_handler(
@@ -78,9 +70,9 @@ async fn websocket_handler(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     if let Some(name) = check_username(&state, &username) {
-      ws.on_upgrade(|socket| websocket(socket, state, name))
+        ws.on_upgrade(|socket| websocket(socket, state, name))
     } else {
-      (StatusCode::BAD_REQUEST, "Username taken").into_response()
+        (StatusCode::BAD_REQUEST, "Username taken").into_response()
     }
 }
 
@@ -140,12 +132,14 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>, name: String) {
 }
 
 fn check_username(state: &AppState, name: &str) -> Option<String> {
-    if name.contains(":") { return None }; // begone hacker!!1
+    if name.contains(":") {
+        return None;
+    }; // begone hacker!!1
     let mut user_set = state.user_set.lock().unwrap();
 
     if !user_set.contains(name) {
         user_set.insert(name.to_owned());
-        return Some(name.to_owned())
+        return Some(name.to_owned());
     } else {
         None
     }

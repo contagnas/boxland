@@ -1,14 +1,11 @@
-use std::hash::DefaultHasher;
-use std::ops::Deref;
 use std::sync::OnceLock;
 
 use avian3d::prelude::*;
 use avian3d::prelude::{DistanceJoint, GravityScale, RigidBody};
 use bevy::asset::RenderAssetUsages;
-use bevy::color::palettes::css::{GOLD, PURPLE};
-use bevy::prelude::*;
-use bevy::picking::backend::ray::RayMap;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::picking::backend::ray::RayMap;
+use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages};
 use bevy_channel_trigger::ChannelSender;
@@ -23,14 +20,14 @@ fn set_sender(sender: ChannelSender<MotionEvent>) {
 }
 
 #[wasm_bindgen]
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 extern "C" {
     #[wasm_bindgen(js_name = publish_event)]
     fn publish_event(event: &str);
 }
 
-#[cfg(not(target_arch="wasm32"))]
-fn publish_event(event: &str) {}
+#[cfg(not(target_arch = "wasm32"))]
+fn publish_event(_event: &str) {}
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
@@ -38,8 +35,7 @@ fn main() {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn main() {
-}
+fn main() {}
 
 #[wasm_bindgen]
 pub fn send_event(event: &str) {
@@ -50,7 +46,7 @@ pub fn send_event(event: &str) {
     if let Some((username, event)) = event.split_once(":") {
         if let Ok(position) = serde_json::from_str::<ReportedPosition>(event) {
             let username = username.to_owned();
-            sender.send( MotionEvent { username, position })
+            sender.send(MotionEvent { username, position })
         }
     }
 }
@@ -74,7 +70,6 @@ pub fn run(name: &str) {
         ..default()
     };
 
-
     let mut app = App::new();
 
     let app = app
@@ -89,7 +84,7 @@ pub fn run(name: &str) {
 
     use bevy_channel_trigger::ChannelTriggerApp;
     let sender = app.add_channel_trigger::<MotionEvent>();
-    set_sender(sender); 
+    set_sender(sender);
 
     app.run();
 }
@@ -99,9 +94,6 @@ struct MyName(String);
 
 #[derive(Component)]
 struct Goal(String);
-
-#[derive(Component)]
-struct Box(String);
 
 #[derive(Component)]
 struct ColorMode;
@@ -230,7 +222,6 @@ fn create_box(
             GravityScale(0.0),
             Transform::from_rotation(Quat::from_rotation_y(90.0)),
             LockedAxes::ROTATION_LOCKED,
-            Box(name.to_owned()),
         ))
         .id();
     // goal
@@ -245,21 +236,17 @@ fn create_box(
     commands.spawn(
         DistanceJoint::new(goal, cube)
             .with_compliance(1.0 / 50.0)
-            .with_linear_velocity_damping(10.0)
-        //.with_local_anchor_2(0.5 * Vector::ONE)
-        //.with_rest_length(1.5)
-        //.with_compliance(1.0 / 400.0),
+            .with_linear_velocity_damping(10.0), //.with_local_anchor_2(0.5 * Vector::ONE)
+                                                 //.with_rest_length(1.5)
+                                                 //.with_compliance(1.0 / 400.0),
     );
-
-
 }
 
 #[derive(Resource, Serialize, Deserialize, Clone)]
 struct ReportedPosition {
     x: f32,
-    z: f32
+    z: f32,
 }
-
 
 fn report_position(
     mut query_goal: Query<(&Transform, &Goal)>,
@@ -267,7 +254,7 @@ fn report_position(
     my_name: Res<MyName>,
 ) {
     let MyName(name) = my_name.into_inner();
-    if let Some((goal, _)) = query_goal.iter_mut().find(|(_, goal)| {&goal.0 == name}) {
+    if let Some((goal, _)) = query_goal.iter_mut().find(|(_, goal)| &goal.0 == name) {
         if goal.translation.x != reported_position.x || goal.translation.z != reported_position.z {
             let new_position = ReportedPosition {
                 x: goal.translation.x,
@@ -292,29 +279,23 @@ fn update_goal(
     };
 
     let MyName(name) = my_name.into_inner();
-    if let Some((mut goal, _)) = query_goal.iter_mut().find(|(_, goal)| {&goal.0 == name}) {
-    let (_, ray) = ray_map.iter().next()?;
-    let ground_dist = ray.intersect_plane(Vec3::ZERO, InfinitePlane3d::default())?;
-    let ground = ray.get_point(ground_dist);
-
+    if let Some((mut goal, _)) = query_goal.iter_mut().find(|(_, goal)| &goal.0 == name) {
+        let (_, ray) = ray_map.iter().next()?;
+        let ground_dist = ray.intersect_plane(Vec3::ZERO, InfinitePlane3d::default())?;
+        let ground = ray.get_point(ground_dist);
 
         goal.translation = ground.with_y(0.5);
     }
-
 
     Some(())
 }
 
 fn update_goal_system(
-    mut query_goal: Query<(&mut Transform, &Goal)>,
+    query_goal: Query<(&mut Transform, &Goal)>,
     my_name: Res<MyName>,
     ray_map: Res<RayMap>,
 ) {
-    update_goal(
-        query_goal,
-        my_name,
-        ray_map,
-    );
+    update_goal(query_goal, my_name, ray_map);
 }
 
 fn on_motion_event(
@@ -326,19 +307,19 @@ fn on_motion_event(
     my_name: Res<MyName>,
     mut query_goal: Query<(&mut Transform, &Goal)>,
 ) {
-    let MotionEvent { username, position} = trigger.event();
+    let MotionEvent { username, position } = trigger.event();
 
     // The event is for me
     let MyName(my_name) = my_name.into_inner();
     if my_name == username {
-        return
+        return;
     }
 
     // The event is for a known box
-    if let Some((mut goal, _)) = query_goal.iter_mut().find(|(_, goal)| {&goal.0 == username}) {
+    if let Some((mut goal, _)) = query_goal.iter_mut().find(|(_, goal)| &goal.0 == username) {
         goal.translation.x = position.x;
         goal.translation.z = position.z;
-        return
+        return;
     }
 
     // The event is for a new box
@@ -346,8 +327,8 @@ fn on_motion_event(
 }
 
 pub fn string_to_color(input: &str) -> Color {
-    use std::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
     // Hash the input string
     let mut hasher = DefaultHasher::new();
     input.hash(&mut hasher);
@@ -363,6 +344,11 @@ pub fn string_to_color(input: &str) -> Color {
 }
 
 fn invert_color(color: Color) -> Color {
-    let Srgba {red, green, blue, alpha} = color.to_srgba();
-    Color::srgba(1.0- red, 1.0 - green, 1.0 - blue, alpha)
+    let Srgba {
+        red,
+        green,
+        blue,
+        alpha,
+    } = color.to_srgba();
+    Color::srgba(1.0 - red, 1.0 - green, 1.0 - blue, alpha)
 }

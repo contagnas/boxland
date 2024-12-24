@@ -40,7 +40,7 @@ export const Intro = () => {
       }
       setInitWebsocket(false)
     }
-  })
+  }, [name, fixedName, initWebsocket])
 
   useEffect(() => {
     messages.forEach((_, index) => {
@@ -66,8 +66,12 @@ export const Intro = () => {
         const input = document.getElementById("nameInput")
         if (input) {
           input.focus()
-          //@ts-ignore
-          input.setSelectionRange(0, 0)
+          try {
+            //@ts-expect-error it's fine if this isn't supported
+            input.setSelectionRange(0, 0)
+          } catch  {
+            // ignored
+          }
         }
       }, messages.length * 2000);
     }
