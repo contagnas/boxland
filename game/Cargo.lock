@@ -2719,6 +2719,8 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy_channel_trigger",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
 ]
 

@@ -5,11 +5,8 @@ import { Header } from "@/components/header"
 import { BouncingBall } from "@/components/bouncing-ball"
 import { Game } from "@/components/game"
 import { Intro }  from "@/components/intro"
-import init from "@/game/game"
 
 function App() {
-  useEffect(() => {init()}, [])
-
   return (
     <ThemeProvider defaultTheme="dark">
       <div className="flex flex-col items-center h-full relative">

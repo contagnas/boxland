@@ -35,11 +35,11 @@ function SunIcon() {
 export function Header() {
   const { setTheme } = useTheme();
   return (
-    <header className="w-full flex justify-between items-center px-4 py-2 bg-[#FF00FF] text-[#00FFFF] border-8 border-dotted border-transparent animate-border-dance">
+    <header className="w-full flex justify-between items-center px-4 py-1 bg-[#FF00FF] text-[#00FFFF] border-8 border-dotted border-transparent animate-border-dance">
       {/* Left Side: Marquee-like Text */}
       <div className="flex items-center">
         <h1 className="text-4xl font-extrabold italic underline tracking-widest">
-        Mouse Thing
+          BOX LAND
         </h1>
       </div>
 

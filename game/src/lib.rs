@@ -7,6 +7,7 @@ use bevy::picking::backend::ray::RayMap;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_channel_trigger::ChannelSender;
 
+use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
 static EVENT_BRIDGE: OnceLock<Option<ChannelSender<WebEvent>>> = OnceLock::new();
@@ -27,13 +28,19 @@ pub fn send_event(event: &str) {
         return bevy::log::error!("`WebPlugin` not installed correctly (no sender found)");
     };
     match event {
-        "light" => sender.send(WebEvent::SetLightMode),
+        "light" =>
+            sender.send(WebEvent::SetLightMode),
         "dark" => sender.send(WebEvent::SetDarkMode),
-        _ => { warn!("Bad event: {event}") }
+        _ => {
+            warn!("Bad event: {event}");
+            return;
+        }
     }
+    publish_event(event);
 }
 
-fn main() {
+#[wasm_bindgen]
+pub fn run() {
     let window_descriptor = Window {
         title: "Mouse".to_string(),
         canvas: Some("#game".to_string()),
@@ -53,6 +60,7 @@ fn main() {
         .add_plugins(MeshPickingPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_systems(Update, update_goal_system)
+        .add_systems(Update, report_position)
         .add_observer(on_web_event);
 
     use bevy_channel_trigger::ChannelTriggerApp;
@@ -129,6 +137,34 @@ fn setup(
         //.with_rest_length(1.5)
         //.with_compliance(1.0 / 400.0),
     );
+
+    commands.insert_resource(ReportedPosition { x: 0.0, z: 0.0 })
+}
+
+#[derive(Resource, Serialize)]
+struct ReportedPosition {
+  x: f32,
+  z: f32
+}
+
+
+fn report_position(
+    mut query_goal: Query<&Transform, With<Goal>>,
+    mut reported_position: ResMut<ReportedPosition>
+) {
+    for goal in &mut query_goal {
+        if goal.translation.x != reported_position.x || goal.translation.z != reported_position.z {
+            let new_position = ReportedPosition {
+                x: goal.translation.x,
+                z: goal.translation.z,
+            };
+            if let Ok(json) = serde_json::to_string(&new_position) {
+                publish_event(&json);
+            }
+            reported_position.x = new_position.x;
+            reported_position.z = new_position.z;
+        }
+    }
 }
 
 fn update_goal(
