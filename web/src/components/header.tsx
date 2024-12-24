@@ -1,8 +1,8 @@
-import { FakeSwitch } from "@/components/ui/fake-switch"; 
-import { Toaster } from "@/components/ui/sonner"
+import { FakeSwitch } from "@/components/ui/fake-switch";
+import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { useTheme } from "@/components/theme-provider"
-import { send_event } from "@/game/game"
+import { useTheme } from "@/components/theme-provider";
+import { send_event } from "@/game/game";
 
 function SunIcon() {
   return (
@@ -59,15 +59,15 @@ export function Header() {
         </svg>
         <FakeSwitch
           onClick={() => {
-            toast("A mysterious force prevents light mode!")
-            setTheme("light")
-            send_event("light")
+            toast("A mysterious force prevents light mode!");
+            setTheme("light");
+            send_event("light");
           }}
           onUnclick={() => {
-            setTheme("dark")
-            send_event("dark")
+            setTheme("dark");
+            send_event("dark");
           }}
-            />
+        />
         <SunIcon />
 
         <Toaster />

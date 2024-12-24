@@ -1,9 +1,9 @@
-import './App.css'
-import { ThemeProvider } from "@/components/theme-provider"
-import { Header } from "@/components/header"
-import { BouncingBall } from "@/components/bouncing-ball"
-import { Intro }  from "@/components/intro"
-import FlashingTitle from "@/components/flashing-title"
+import "./App.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Header } from "@/components/header";
+import { BouncingBall } from "@/components/bouncing-ball";
+import { Intro } from "@/components/intro";
+import FlashingTitle from "@/components/flashing-title";
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
         <Intro />
       </div>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;

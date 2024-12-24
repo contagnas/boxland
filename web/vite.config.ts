@@ -1,7 +1,7 @@
-import path from "path"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
- 
+import path from "path";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -11,14 +11,14 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: ['.', '../game/public']
+      allow: [".", "../game/public"],
     },
     proxy: {
-      '/ws': {
-        target: 'ws://localhost:3000',
+      "/ws": {
+        target: "ws://localhost:3000",
         ws: true,
         rewriteWsOrigin: true,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});

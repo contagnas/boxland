@@ -19,7 +19,7 @@ const FlashingTitle = () => {
     document.title = isOriginal ? originalTitle : flashingTitle;
   }, [isOriginal]);
 
-  return (<></>);
+  return <></>;
 };
 
 export default FlashingTitle;

@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 type Props = {
-  onClick?: () => unknown
-  onUnclick?: () => unknown
-}
+  onClick?: () => unknown;
+  onUnclick?: () => unknown;
+};
 
 export function FakeSwitch({ onClick, onUnclick }: Props) {
   const [isSwitching, setIsSwitching] = useState(false);
@@ -49,7 +49,9 @@ export function FakeSwitch({ onClick, onUnclick }: Props) {
       </style>
       <div
         className={`absolute top-1/2 left-1 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 transform ${
-          isSwitching ? "translate-x-6 -translate-y-1/2" : "translate-x-0 -translate-y-1/2"
+          isSwitching
+            ? "translate-x-6 -translate-y-1/2"
+            : "translate-x-0 -translate-y-1/2"
         }`}
       ></div>
     </div>
