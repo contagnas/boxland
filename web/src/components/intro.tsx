@@ -39,7 +39,7 @@ export const Intro = () => {
             `I AM ${name.toUpperCase()}`,
             `YOU ARE NOT ${name.toUpperCase()}`,
             `ENTER YOUR REAL NAME`,
-            "OR AT LEAST ONE THAT IS NOT MINE",
+            "OR FACE MY WRATH",
           ]);
         }, 2000);
       };
