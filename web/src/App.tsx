@@ -1,9 +1,7 @@
-import { useEffect } from 'react'
 import './App.css'
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { BouncingBall } from "@/components/bouncing-ball"
-import { Game } from "@/components/game"
 import { Intro }  from "@/components/intro"
 
 function App() {

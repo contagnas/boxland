@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import init, { InitOutput, send_event } from "@/game/game"
+import { useEffect } from 'react';
+import init, { send_event, run } from "@/game/game"
 
 let engine: any | null = null;
 let engineIniting = false;
@@ -11,9 +11,10 @@ const initEngine = async () => {
   return engine
 }
 
-async function runGame(engine: InitOutput) {
+async function runGame(username: string) {
   try {
-    engine.run()
+    console.log('passing username to run', username)
+    run(username)
   } catch (e) {
     const error = e as Error;
     if (error.message.includes("Using exceptions for control flow")) {
@@ -24,11 +25,12 @@ async function runGame(engine: InitOutput) {
 }
 
 export type GameProps = {
-  websocket: WebSocket | null,
+  websocket: WebSocket | null
   visible?: Boolean
+  username: string
 }
 
-export const Game = ({ websocket, visible }: GameProps) => {
+export const Game = ({ websocket, visible, username }: GameProps) => {
   useEffect(() => {
     initEngine()
   }, [])
@@ -36,7 +38,7 @@ export const Game = ({ websocket, visible }: GameProps) => {
   useEffect(() => {
     if (engine && visible) {
       console.log(engine)
-      runGame(engine)
+      runGame(username)
     }
   }, [engine, visible])
 
@@ -44,11 +46,11 @@ export const Game = ({ websocket, visible }: GameProps) => {
 
     if (websocket) {
       websocket.onmessage = (event) => {
-        console.log('Message from server: ', event.data);
         send_event(event.data)
       };
 
       // Register the function on the window object
+      // @ts-ignore
       window.publish_event = (message: string) => {
         if (websocket.readyState === WebSocket.OPEN) {
           websocket.send(message)

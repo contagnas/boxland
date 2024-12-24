@@ -15,9 +15,6 @@ wasm-bindgen = "0.2.99"
 [profile.dev]
 opt-level = 1
 
-[lib]
-crate-type = ["cdylib"]
-
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
 opt-level = 3

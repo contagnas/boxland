@@ -18,6 +18,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tokio::sync::broadcast;
+use tower_http::{
+    services::{ServeDir, ServeFile},
+    trace::TraceLayer,
+    compression::CompressionLayer,
+};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use axum::extract::Path;
 
@@ -29,6 +34,7 @@ struct AppState {
     tx: broadcast::Sender<String>,
 }
 use std::{fmt, str::FromStr};
+use axum::routing::get_service;
 
 #[tokio::main]
 async fn main() {
@@ -45,12 +51,15 @@ async fn main() {
     let (tx, _rx) = broadcast::channel(100);
 
     let app_state = Arc::new(AppState { user_set, tx });
+    let serve_dir = get_service(ServeDir::new("../web/dist/"))
+        .layer(CompressionLayer::new());
 
     let app = Router::new()
         .route("/ws/:username", get(websocket_handler))
-        .with_state(app_state);
+        .with_state(app_state)
+        .fallback(serve_dir);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000")
         .await
         .unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());

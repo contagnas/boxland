@@ -61,6 +61,7 @@ export const Intro = () => {
         const input = document.getElementById("nameInput")
         if (input) {
           input.focus()
+          //@ts-ignore
           input.setSelectionRange(0, 0)
         }
       }, messages.length * 2000);
@@ -88,7 +89,7 @@ export const Intro = () => {
   const introShown = showGame? "hidden" : ""
   return (
     <>
-      <Game visible={showGame} websocket={websocket} />
+      <Game visible={showGame} websocket={websocket} username={name} />
       <div className={`h-full w-full flex flex-col justify-center items-center bg-gradient-to-b from-yellow-500 to-pink-800 text-center space-y-6 ${introShown}`}>
         {messages.map((msg, index) => (
           <div
