@@ -2,6 +2,7 @@ import { FakeSwitch } from "@/components/ui/fake-switch";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
+// just build-wasm
 import { send_event } from "@/game/game";
 
 function SunIcon() {

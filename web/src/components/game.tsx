@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+// just build-wasm
 import init, { InitOutput, send_event, run } from "@/game/game";
 
 let engine: InitOutput | null = null;
